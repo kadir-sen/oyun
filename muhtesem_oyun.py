@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import base64
 import os
@@ -8,14 +6,35 @@ def audio_to_base64(file_path):
     with open(file_path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-def play_music(file_path, session_key):
-    if session_key not in st.session_state or not st.session_state[session_key]:
-        audio_b64 = audio_to_base64(file_path)
-        st.markdown(
-            f"""<audio autoplay loop id="{session_key}"><source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3"></audio>""",
-            unsafe_allow_html=True
-        )
-        st.session_state[session_key] = True
+def play_background_music():
+    # Arka planda loop eden müzik (her zaman çalacak, sayfa değişse de HTML olarak kalır)
+    audio_b64 = audio_to_base64("sounds/decision.mp3")
+    st.markdown(
+        f"""
+        <audio id="bg-music" autoplay loop>
+            <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
+        </audio>
+        <script>
+        var bgm = document.getElementById('bg-music');
+        if (bgm) {{
+            bgm.volume = 0.25; // İstersen sesi azaltabilirsin
+        }}
+        </script>
+        """, unsafe_allow_html=True
+    )
+
+def play_effect(file_path):
+    # Efekt sesi üst üste çalabilsin diye ID'yi randomize ediyoruz
+    import random
+    audio_b64 = audio_to_base64(file_path)
+    uniq_id = f"fx-{random.randint(0,9999999)}"
+    st.markdown(
+        f"""
+        <audio id="{uniq_id}" autoplay>
+            <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
+        </audio>
+        """, unsafe_allow_html=True
+    )
 
 css = """
 <style>
@@ -56,6 +75,9 @@ body {
 """
 st.markdown(css, unsafe_allow_html=True)
 
+# --- HER YENİ YÜKLENİŞTE ARKA PLAN MÜZİĞİ LOOP (her zaman çağır!) ---
+play_background_music()
+
 if "current_screen" not in st.session_state:
     st.session_state.current_screen = "character_select"
 if "selected_character" not in st.session_state:
@@ -68,6 +90,10 @@ if "game_data" not in st.session_state:
         "history": [],
         "scores": {"harem": 0, "suleyman": 0, "divan": 0}
     }
+if "play_char_fx" not in st.session_state:
+    st.session_state.play_char_fx = False
+if "last_question_result" not in st.session_state:
+    st.session_state.last_question_result = None  # "dogru" veya "yanlis"
 
 
 scenerios =  {
@@ -2090,6 +2116,8 @@ scenerios =  {
 
  # SENARYO EKLEMEK İÇİN
 
+
+
 characters = [
     {
         "name": "Süleyman",
@@ -2108,12 +2136,6 @@ characters = [
     }
 ]
 
-# Oyun başında intro müziği
-if "music_played" not in st.session_state:
-    st.session_state["music_played"] = False
-if not st.session_state["music_played"]:
-    play_music("sounds/decision.mp3", "music_played")
-
 def render_character_selection():
     st.title("Karakter Seçimi")
     st.markdown("Lütfen bir karakter seçin:")
@@ -2121,13 +2143,11 @@ def render_character_selection():
         col = st.container()
         if col.button(f"{char['name']}"):
             st.session_state.selected_character = char["name"]
-            click_b64 = audio_to_base64("sounds/click.mp3")
-            st.markdown(f"""<audio autoplay><source src="data:audio/mp3;base64,{click_b64}" type="audio/mp3"></audio>""", unsafe_allow_html=True)
+            play_effect("sounds/click.mp3")
             st.session_state.character_selected = True
             st.session_state.current_screen = "game"
-            st.session_state["char_music_played"] = False
+            st.session_state.play_char_fx = True  # Karakter efekti çal
             st.rerun()
-        # Seçili karakter için farklı çerçeve
         selected_cls = "selected" if st.session_state.selected_character == char["name"] else ""
         col.markdown(
             f'<img src="{char["img"]}" class="char-img {selected_cls}" />',
@@ -2136,10 +2156,12 @@ def render_character_selection():
         col.markdown(f"**{char['name']}**", unsafe_allow_html=True)
     if st.session_state.selected_character:
         st.success(f"Seçilen karakter: {st.session_state.selected_character}")
-        # Karakter müziğini sadece ilk geçişte başlat
-        if not st.session_state.get("char_music_played", False):
-            char = next(c for c in characters if c["name"] == st.session_state.selected_character)
-            play_music(char["sound"], "char_music_played")
+
+    # Karakter seçimi sonrası efekti (tekrar tekrar çalmasın diye flag)
+    if st.session_state.selected_character and st.session_state.play_char_fx:
+        char = next(c for c in characters if c["name"] == st.session_state.selected_character)
+        play_effect(char["sound"])
+        st.session_state.play_char_fx = False
 
 def render_game_screen():
     st.title("Sarayda Bir Yolculuk")
@@ -2168,9 +2190,13 @@ def render_game_screen():
         idx = option_texts.index(chosen)
         chosen_key = option_keys[idx]
         outcome = options[chosen_key]
-        if char == "Süleyman" and outcome.get("is_wrong", False):
-            dikkat_b64 = audio_to_base64("sounds/dikkat.mp3")
-            st.markdown(f"""<audio autoplay><source src="data:audio/mp3;base64,{dikkat_b64}" type="audio/mp3"></audio>""", unsafe_allow_html=True)
+        # Yanlış cevap ise dikkat.mp3, doğru ise dogru.mp3 çal
+        if outcome.get("is_wrong", False):
+            play_effect("sounds/dikkat.mp3")
+            st.session_state.last_question_result = "yanlis"
+        else:
+            play_effect("sounds/dogrukarar.mp3")
+            st.session_state.last_question_result = "dogru"
         st.session_state.game_data["history"].append({
             "scene": scene_key, "choice": chosen, "outcome": outcome["outcome"]
         })
@@ -2178,6 +2204,14 @@ def render_game_screen():
             st.session_state.game_data["scores"][k] += v
         st.session_state.game_data["current_scene"] = outcome["next_scene"]
         st.rerun()
+
+    # Son cevap doğru/yanlış ise ilgili efekti çal (aynı tuşa iki kez basılırsa çakışmayı engeller)
+    if st.session_state.last_question_result == "yanlis":
+        play_effect("sounds/dikkat.mp3")
+        st.session_state.last_question_result = None
+    elif st.session_state.last_question_result == "dogru":
+        play_effect("sounds/dogrukarar.mp3")
+        st.session_state.last_question_result = None
 
 if st.session_state.current_screen == "character_select":
     render_character_selection()
@@ -2193,6 +2227,6 @@ if st.button("Oyunu Sıfırla"):
         "history": [],
         "scores": {"harem": 0, "suleyman": 0, "divan": 0}
     }
-    st.session_state["music_played"] = False
-    st.session_state["char_music_played"] = False
+    st.session_state.play_char_fx = False
+    st.session_state.last_question_result = None
     st.rerun()
