@@ -20,7 +20,7 @@ html, body {
     min-height: 100%;
     margin: 0;
     padding: 0;
-    background: url('images/ottoman_background.jpg') no-repeat center center fixed;
+    background: url('oyun/images/ottoman_background.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #222;
     font-family: 'Papyrus', fantasy, cursive;
@@ -32,7 +32,7 @@ html, body {
     .custom-font { font-size: 5vw !important;}
 }
 .parchment {
-    background: url('images/parchment_bg.jpg') no-repeat center center;
+    background: url('oyun/images/parchment_bg.jpg') no-repeat center center;
     background-size: cover;
     margin: 2vw auto;
     padding: 30px 44px;
@@ -1251,7 +1251,7 @@ scenerios =  {
                 "description": "Bolum 51: Hürrem, İbrahim Paşa'nın canı mevzu bahis olduğunda Valide Sultan (Hatice Sultan) karşısında bir kırılma yaşıyor. Aynı zamanda Gülfem Hatun'un huzursuzluğu, Mahidevran ve Fatma Hatun ile ilgili entrikalar da gündemde.",
                 "character": {
                     "name": "Hatice Sultan",
-                    "image": "images/hatice_sultan.png",
+                    "image": "oyun/images/hatice_sultan.png",
                     "quote": "İftira attıysa, ben bunu kabul edemem!"
                 },
                 "options": {
@@ -1279,7 +1279,7 @@ scenerios =  {
                 "description": "Bolum 52: Hürrem, Süleyman ile karşılaşır; sancağa gideceğini öğrenir. Aynı zamanda İbrahim Paşa'nın Doğu seferi hazırlığı ve Matrakçı'nın sefer zamanı gündemde.",
                 "character": {
                     "name": "Süleyman",
-                    "image": "images/suleyman.jpg",
+                    "image": "oyun/images/suleyman.jpg",
                     "quote": "Benim yolum buradan geçecek!"
                 },
                 "options": {
@@ -1307,7 +1307,7 @@ scenerios =  {
                 "description": "Bolum 53: Hürrem, cariyesi Esma'nın davranışlarından şüphelenir; Şehzade Mustafa'nın zehirlenmiş olabileceği şüphesiyle yüzleşir; ayrıca Süleyman'ın Gülbahar Hatun'la konuşmasına şahit olur ve sevgisinden şüphe duymaya başlar.",
                 "character": {
                     "name": "Şahzade Mustafa",
-                    "image": "images/mustafa.png",
+                    "image": "oyun/images/mustafa.png",
                     "quote": "Benim sağlığım her şeyden önemli!"
                 },
                 "options": {
@@ -1335,7 +1335,7 @@ scenerios =  {
                 "description": "Bolum 57: Hürrem, Gülfem'in huzursuz olduğunu öğrenir; ayrıca Daye Hatun yerine yeni hazinedar seçme kararsızlığı ve Matrakçı'nın Doğu seferiyle ilgili durumu gündeme gelir.",
                 "character": {
                     "name": "Gülfem Hatun",
-                    "image": "images/gulfem.png",
+                    "image": "oyun/images/gulfem.png",
                     "quote": "Bu huzursuzluk basit bir belirtiden öte..."
                 },
                 "options": {
@@ -1363,7 +1363,7 @@ scenerios =  {
                 "description": "Bolum 59: Hürrem, Paşa'nın kendisini eş değerde gördüğü, Fatma Hatun'un entrikaları ve kendisine yönelik iftiralara karşı nasıl tepki vereceğini değerlendiriyor.",
                 "character": {
                     "name": "Ebu Suud",
-                    "image": "images/ebusuud.png",
+                    "image": "oyun/images/ebusuud.png",
                     "quote": "Güç, sözde değil eylemdedir!"
                 },
                 "options": {
@@ -1391,7 +1391,7 @@ scenerios =  {
                 "description": "Bolum 66: Hürrem, Paşa'nın Bağdat'a gitmekte kararlı olduğunu, İskender'in düzmece istihbaratını ve askere sirayet edecek husumeti öğreniyor.",
                 "character": {
                     "name": "Pargalı",
-                    "image": "images/pargali.png",
+                    "image": "oyun/images/pargali.png",
                     "quote": "Bağdat yolunda tehlike var, dikkat etmeliyiz!"
                 },
                 "options": {
@@ -1419,7 +1419,7 @@ scenerios =  {
                 "description": "Bolum 67: Hürrem, haremi koruma vazifesini, Nadya'nın tepkisini ve ayrılık-ecel konularını değerlendiriyor.",
                 "character": {
                     "name": "Mihrimah",
-                    "image": "images/mihrimah.png",
+                    "image": "oyun/images/mihrimah.png",
                     "quote": "Kalbim, kaderin acımasız oyunlarına yenik düşmemeli!"
                 },
                 "options": {
@@ -1447,7 +1447,7 @@ scenerios =  {
                 "description": "Bolum 68: Hürrem, cariyenin zor durumda olduğunu öğrenir ve yaklaşan akıbeti bir fırsata çevirmeyi düşünür.",
                 "character": {
                     "name": "Bali Bey",
-                    "image": "images/bali_bey.png",
+                    "image": "oyun/images/bali_bey.png",
                     "quote": "Güç, her zaman kendi lehimize işler."
                 },
                 "options": {
@@ -1475,7 +1475,7 @@ scenerios =  {
                 "description": "Bolum 69: Hürrem, Mehmet'in ata binmekten korktuğunu öğrenir ve validemin yüzünün nihayet güldüğünü fark eder.",
                 "character": {
                     "name": "Bali Bey",  
-                    "image": "images/bali_bey.png",
+                    "image": "oyun/images/bali_bey.png",
                     "quote": "Korku, cesaretin düşmanıdır."
                 },
                 "options": {
@@ -1503,7 +1503,7 @@ scenerios =  {
                 "description": "Bolum 70: Hürrem, evleneceği adamı başka bir yere gönderme teklifiyle ve Cihangir'in rahatsızlığıyla karşı karşıya.",
                 "character": {
                     "name": "Cihangir",
-                    "image": "images/cihangir.png",
+                    "image": "oyun/images/cihangir.png",
                     "quote": "Rahatsızlık bazen gizli tehlikelerin habercisidir."
                 },
                 "options": {
@@ -1531,7 +1531,7 @@ scenerios =  {
                 "description": "Bolum 71: Hürrem, Şehzade Bayezid'in Kütahya'ya gitmek istememesi ve Atmaca'nın gelişi üzerine stratejik kararlar almalı.",
                 "character": {
                     "name": "Şehzade Bayezid",
-                    "image": "images/bayezid.png",
+                    "image": "oyun/images/bayezid.png",
                     "quote": "Kütahya'ya gitmek, kalbimin sesini dinlemek demektir."
                 },
                 "options": {
@@ -1559,7 +1559,7 @@ scenerios =  {
                 "description": "Bolum 108: Evlilik ve Kapudan Paşa'nın kızı konusu gündemde. Evlilikler politik araç olarak değerlendiriliyor.",
                 "character": {
                     "name": "Kapudan Paşa'nın Kızı",
-                    "image": "images/kapudan_kizi.png",
+                    "image": "oyun/images/kapudan_kizi.png",
                     "quote": "Ben, sarayın yeni penceresiyim."
                 },
                 "options": {
@@ -1587,7 +1587,7 @@ scenerios =  {
                 "description": "Bolum 109: Hakikat, ateş ve derya kavramları üzerine derin düşünceler; Mustafa Paşa’dan intikam arzusu ve aile bağları tartışılıyor.",
                 "character": {
                     "name": "Mustafa Paşa",
-                    "image": "images/mustafa_pasa.png",
+                    "image": "oyun/images/mustafa_pasa.png",
                     "quote": "Adaletin tereddüdü, intikamın kıvılcımıdır."
                 },
                 "options": {
@@ -1615,7 +1615,7 @@ scenerios =  {
                 "description": "Bolum 110: Venedik balosu, dostluk ve cephe genişlemesi konusu; 'Hünkar böyle karar vermiş...' sözüyle Hürrem'in manipülatif yönü öne çıkıyor.",
                 "character": {
                     "name": "Hünkar",
-                    "image": "images/hunkar.png",
+                    "image": "oyun/images/hunkar.png",
                     "quote": "Güç, her daim adil olmalı."
                 },
                 "options": {
@@ -1650,7 +1650,7 @@ scenerios =  {
                 "description": "Bolum 92: Mira'nın ihaneti ve evlendirme telaşı; Paşa hazretlerinin sözleri gündemde.",
                 "character": {
                     "name": "Mira",
-                    "image": "images/mira.png",
+                    "image": "oyun/images/mira.png",
                     "quote": "Benim ihanetime kimse mazhar olmaz!"
                 },
                 "options": {
@@ -1690,7 +1690,7 @@ scenerios =  {
                 "description": "Bolum 93: Şehzade'nin kaybolması, kıyafetlerinin bulunması; Validemin 'yemin ederim kazaydı' demesi gündemde.",
                 "character": {
                     "name": "Hünkar",
-                    "image": "images/hunkar.png",
+                    "image": "oyun/images/hunkar.png",
                     "quote": "Her şey kaderin bir oyunu..."
                 },
                 "options": {
@@ -2143,17 +2143,17 @@ scenerios =  {
 characters = [
     {
         "name": "Süleyman",
-        "img": "images/sultan.png",
+        "img": "oyun/images/sultan.png",
         "sound": "sounds/diger.mp3"
     },
     {
         "name": "Pargalı",
-        "img": "images/pargali.png",
+        "img": "oyun/images/pargali.png",
         "sound": "sounds/diger.mp3"
     },
     {
         "name": "Hürrem",
-        "img": "images/hurrem.png",
+        "img": "oyun/images/hurrem.png",
         "sound": "sounds/hurrem.mp3"
     }
 ]
@@ -2171,7 +2171,7 @@ def render_character_selection():
             st.markdown(f"""<audio autoplay><source src="data:audio/mp3;base64,{click_b64}" type="audio/mp3"></audio>""", unsafe_allow_html=True)
         selected_cls = "selected" if st.session_state.selected_character == char["name"] else ""
         st.markdown(
-            f'<img src="images/{char["img"].split("/")[-1]}" class="char-img {selected_cls}" />',
+            f'<img src="oyun/images/{char["img"].split("/")[-1]}" class="char-img {selected_cls}" />',
             unsafe_allow_html=True
         )
         st.markdown(f"<div class='char-label'>{char['name']}</div>", unsafe_allow_html=True)
