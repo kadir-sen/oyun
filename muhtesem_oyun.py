@@ -58,7 +58,7 @@ if "game_data" not in st.session_state:
         "scores": {"harem": 0, "suleyman": 0, "divan": 0}
     }
 
-# --- Senaryolar (Burayı boş bırak, oyun içeriğini ekleyeceksin!) ---
+
 scenerios =  {
             # İlk 50 bölüm (örnek)
             "bolum_1": {
@@ -2098,6 +2098,7 @@ scenerios =  {
                 "options": {}
             }
         }
+
 
 
 
