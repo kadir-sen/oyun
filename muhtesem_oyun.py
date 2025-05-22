@@ -2131,7 +2131,7 @@ characters = [
     },
     {
         "name": "Hürrem",
-        "img": "images/hurrem.png",
+        "img": "images/hurrem.jpg",
         "sound": "sounds/hurrem.mp3"
     }
 ]
