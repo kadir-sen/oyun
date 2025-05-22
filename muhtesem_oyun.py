@@ -1,7 +1,6 @@
 import streamlit as st
 import base64
 import time
-from PIL import Image
 
 # --- Yardımcı Fonksiyonlar ---
 def audio_to_base64(file_path):
@@ -9,37 +8,73 @@ def audio_to_base64(file_path):
         data = f.read()
     return base64.b64encode(data).decode()
 
-# --- CSS ve Arka Plan Ayarları ---
+# --- Mobil Uyumlu CSS ve Arka Plan ---
 css = """
 <style>
 @font-face {
     font-family: 'Papyrus';
     src: url('fonts/papyrus.ttf') format('truetype');
 }
-body {
+html, body {
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
     background: url('images/ottoman_background.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #222;
-    font-family: 'Papyrus', fantasy;
+    font-family: 'Papyrus', fantasy, cursive;
+}
+@media (max-width: 600px) {
+    .parchment, .score-box { width: 95vw !important; padding: 8vw 2vw !important; font-size: 4vw !important;}
+    .char-img { width: 32vw !important; height: auto !important;}
+    .char-label { font-size: 5vw !important;}
+    .custom-font { font-size: 5vw !important;}
 }
 .parchment {
     background: url('images/parchment_bg.jpg') no-repeat center center;
     background-size: cover;
-    margin: 20px auto;
-    padding: 25px 32px;
+    margin: 2vw auto;
+    padding: 30px 44px;
     border: 2px solid #d2b48c;
     border-radius: 12px;
+    width: 450px;
+    max-width: 95vw;
 }
 .char-img {
-    border: 5px solid #a89c64;
+    border: 3px solid #a89c64;
     border-radius: 18px;
     margin-bottom: 8px;
     cursor: pointer;
+    width: 160px;
+    max-width: 42vw;
+    height: auto;
     transition: border 0.3s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 .char-img.selected {
-    border: 5px solid #24c263;
+    border: 3px solid #24c263;
 }
+.char-label {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 22px;
+    font-family: 'Papyrus', fantasy, cursive;
+}
+.score-box {
+    width: 450px;
+    max-width: 95vw;
+    margin: 8px auto;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #fcf6eecc;
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
+}
+.custom-font { font-family: 'Papyrus', fantasy, cursive; font-size: 26px;}
 </style>
 """
 st.markdown(css, unsafe_allow_html=True)
@@ -58,6 +93,7 @@ if "game_data" not in st.session_state:
         "scores": {"harem": 0, "suleyman": 0, "divan": 0}
     }
 
+# --- Senaryolar (BURAYI BOŞ BIRAK!) ---
 
 scenerios =  {
             # İlk 50 bölüm (örnek)
@@ -2124,23 +2160,21 @@ characters = [
 
 # --- Karakter Seçim Ekranı ---
 def render_character_selection():
-    st.title("Karakter Seçimi")
-    st.markdown("Lütfen bir karakter seçin:")
-    colms = st.columns(3)
+    st.markdown("<div class='custom-font' style='text-align:center;margin-top:2vw;'>Karakter Seçimi</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center;font-size:18px'>Lütfen bir karakter seçin:</div>", unsafe_allow_html=True)
     for i, char in enumerate(characters):
-        if colms[i].button("", key=char["name"]+"_btn"):
+        # Görsel ve seçim butonu mobilde alt alta
+        if st.button(f"{char['name']}", key=char["name"]+"_btn", help=f"{char['name']} seç"):
             st.session_state.selected_character = char["name"]
             # Click sesi
             click_b64 = audio_to_base64("sounds/click.mp3")
             st.markdown(f"""<audio autoplay><source src="data:audio/mp3;base64,{click_b64}" type="audio/mp3"></audio>""", unsafe_allow_html=True)
-        # Seçili karakter için farklı çerçeve
         selected_cls = "selected" if st.session_state.selected_character == char["name"] else ""
-        colms[i].markdown(
-            f'<img src="images/{char["img"].split("/")[-1]}" class="char-img {selected_cls}" width="180"/>',
+        st.markdown(
+            f'<img src="images/{char["img"].split("/")[-1]}" class="char-img {selected_cls}" />',
             unsafe_allow_html=True
         )
-        colms[i].write(char["name"])
-    # Seçim sonrası
+        st.markdown(f"<div class='char-label'>{char['name']}</div>", unsafe_allow_html=True)
     if st.session_state.selected_character:
         st.success(f"Seçilen karakter: {st.session_state.selected_character}")
         if st.button("Seçimi Onayla"):
@@ -2155,40 +2189,40 @@ def render_character_selection():
 
 # --- Oyun Ekranı ---
 def render_game_screen():
-    st.title("Sarayda Bir Yolculuk")
-    char = st.session_state.selected_character
-    st.markdown(f"<div class='custom-font'>Karakter: <b>{char}</b></div>", unsafe_allow_html=True)
-    # Puanlar
+    st.markdown(f"<div class='custom-font' style='text-align:center;'>Karakter: <b>{st.session_state.selected_character}</b></div>", unsafe_allow_html=True)
     skorlar = st.session_state.game_data["scores"]
     st.markdown(
-        f"<div class='parchment'><b>Puanlar:</b> Harem: {skorlar['harem']} &nbsp; Süleyman: {skorlar['suleyman']} &nbsp; Divan: {skorlar['divan']}</div>",
+        f"<div class='score-box'><b>Puanlar:</b> Harem: {skorlar['harem']} &nbsp; Süleyman: {skorlar['suleyman']} &nbsp; Divan: {skorlar['divan']}</div>",
         unsafe_allow_html=True
     )
     # Senaryo boşsa uyarı
     if not scenerios:
-        st.warning("Senaryo eklenmedi! Kodda scenerios kısmını doldurun.")
+        st.markdown(
+            "<div class='parchment'><b>Senaryo eklenmedi! Kodda scenerios kısmını doldurun.</b></div>", 
+            unsafe_allow_html=True
+        )
         return
     game_data = st.session_state.game_data
     scene_key = game_data["current_scene"]
     scene = scenerios.get(scene_key)
     if not scene:
-        st.success("Oyun Bitti! (Senaryoyu tamamlayınca devam edecektir.)")
+        st.markdown(
+            "<div class='parchment'><b>Oyun Bitti! (Senaryoyu tamamlayınca devam edecektir.)</b></div>", 
+            unsafe_allow_html=True
+        )
         return
-    # Soruyu ve seçenekleri parşömen arka planda göster
     st.markdown(f"<div class='parchment'><b>{scene['description']}</b></div>", unsafe_allow_html=True)
     options = scene.get("options", {})
     option_keys = list(options.keys())
     option_texts = [options[k]["text"] for k in option_keys]
-    chosen = st.radio("Ne yapacaksın?", option_texts)
+    chosen = st.selectbox("Ne yapacaksın?", option_texts)
     if st.button("Karar Ver"):
         idx = option_texts.index(chosen)
         chosen_key = option_keys[idx]
         outcome = options[chosen_key]
-        # Eğer karakter Süleyman ve yanlış cevap verilirse dikkat sesi çal
-        if char == "Süleyman" and outcome.get("is_wrong", False):
+        if st.session_state.selected_character == "Süleyman" and outcome.get("is_wrong", False):
             dikkat_b64 = audio_to_base64("sounds/dikkat.mp3")
             st.markdown(f"""<audio autoplay><source src="data:audio/mp3;base64,{dikkat_b64}" type="audio/mp3"></audio>""", unsafe_allow_html=True)
-        # Sonuçları uygula
         st.session_state.game_data["history"].append({
             "scene": scene_key, "choice": chosen, "outcome": outcome["outcome"]
         })
@@ -2204,7 +2238,6 @@ if st.session_state.current_screen == "character_select":
 elif st.session_state.current_screen == "game":
     render_game_screen()
 
-# Oyun sıfırlama
 if st.button("Oyunu Sıfırla"):
     st.session_state.current_screen = "character_select"
     st.session_state.selected_character = None
