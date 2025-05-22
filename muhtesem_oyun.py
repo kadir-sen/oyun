@@ -1,4 +1,5 @@
 
+
 import streamlit as st
 import base64
 import os
@@ -7,8 +8,14 @@ def audio_to_base64(file_path):
     with open(file_path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-# Çalışma dizinini ekrana yaz (debug için)
-st.write("Çalışma dizini:", os.getcwd())
+def play_music(file_path, session_key):
+    if session_key not in st.session_state or not st.session_state[session_key]:
+        audio_b64 = audio_to_base64(file_path)
+        st.markdown(
+            f"""<audio autoplay loop id="{session_key}"><source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3"></audio>""",
+            unsafe_allow_html=True
+        )
+        st.session_state[session_key] = True
 
 css = """
 <style>
@@ -2081,7 +2088,7 @@ scenerios =  {
 
 
 
-
+ # SENARYO EKLEMEK İÇİN
 
 characters = [
     {
@@ -2101,6 +2108,12 @@ characters = [
     }
 ]
 
+# Oyun başında intro müziği
+if "music_played" not in st.session_state:
+    st.session_state["music_played"] = False
+if not st.session_state["music_played"]:
+    play_music("sounds/decision.mp3", "music_played")
+
 def render_character_selection():
     st.title("Karakter Seçimi")
     st.markdown("Lütfen bir karakter seçin:")
@@ -2112,9 +2125,8 @@ def render_character_selection():
             st.markdown(f"""<audio autoplay><source src="data:audio/mp3;base64,{click_b64}" type="audio/mp3"></audio>""", unsafe_allow_html=True)
             st.session_state.character_selected = True
             st.session_state.current_screen = "game"
-            char_b64 = audio_to_base64(char["sound"])
-            st.markdown(f"""<audio autoplay><source src="data:audio/mp3;base64,{char_b64}" type="audio/mp3"></audio>""", unsafe_allow_html=True)
-            st.rerun()  # Doğru rerun fonksiyonu!
+            st.session_state["char_music_played"] = False
+            st.rerun()
         # Seçili karakter için farklı çerçeve
         selected_cls = "selected" if st.session_state.selected_character == char["name"] else ""
         col.markdown(
@@ -2124,6 +2136,10 @@ def render_character_selection():
         col.markdown(f"**{char['name']}**", unsafe_allow_html=True)
     if st.session_state.selected_character:
         st.success(f"Seçilen karakter: {st.session_state.selected_character}")
+        # Karakter müziğini sadece ilk geçişte başlat
+        if not st.session_state.get("char_music_played", False):
+            char = next(c for c in characters if c["name"] == st.session_state.selected_character)
+            play_music(char["sound"], "char_music_played")
 
 def render_game_screen():
     st.title("Sarayda Bir Yolculuk")
@@ -2177,4 +2193,6 @@ if st.button("Oyunu Sıfırla"):
         "history": [],
         "scores": {"harem": 0, "suleyman": 0, "divan": 0}
     }
+    st.session_state["music_played"] = False
+    st.session_state["char_music_played"] = False
     st.rerun()
