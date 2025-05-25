@@ -1,123 +1,345 @@
-
-
-
 import streamlit as st
 import base64
 import os
 from pathlib import Path
 
-# --- YARDIMCI FONKSIYONLAR ---
+# --- HELPER FUNCTIONS ---
+
 def audio_to_base64(file_path):
-    with open(file_path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+    """Convert audio file to base64 for embedding"""
+    try:
+        with open(file_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        st.warning(f"Audio file not found: {file_path}")
+        return None
 
-def play_effect(file_path):
-    import random
+def play_audio_with_user_interaction(file_path, audio_id=None):
+    """Play audio that requires user interaction (mobile-friendly)"""
     audio_b64 = audio_to_base64(file_path)
-    uniq_id = f"fx-{random.randint(0,9999999)}"
+    if not audio_b64:
+        return
+    
+    if not audio_id:
+        import random
+        audio_id = f"audio-{random.randint(0,9999999)}"
+    
     st.markdown(
         f"""
-        <audio id="{uniq_id}" autoplay>
-            <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
-        </audio>
-        """, unsafe_allow_html=True
-    )
-
-def play_background_music():
-    audio_b64 = audio_to_base64("sounds/decision.mp3")
-    st.markdown(
-        f"""
-        <audio id="bg-music" autoplay loop>
+        <audio id="{audio_id}" preload="auto">
             <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
         </audio>
         <script>
-        var bgm = document.getElementById('bg-music');
-        if (bgm) {{
-            bgm.volume = 0.2;
-        }}
+        setTimeout(function() {{
+            var audio = document.getElementById('{audio_id}');
+            if (audio) {{
+                audio.play().catch(function(error) {{
+                    console.log('Audio play failed:', error);
+                }});
+            }}
+        }}, 100);
         </script>
-        """, unsafe_allow_html=True
+        """, 
+        unsafe_allow_html=True
     )
 
-# --- RESIM PATH SORGULAMA ---
+def play_background_music():
+    """Play background music with lower volume"""
+    audio_b64 = audio_to_base64("sounds/decision.mp3")
+    if not audio_b64:
+        return
+        
+    st.markdown(
+        f"""
+        <audio id="bg-music" preload="auto" loop>
+            <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
+        </audio>
+        <script>
+        setTimeout(function() {{
+            var bgm = document.getElementById('bg-music');
+            if (bgm) {{
+                bgm.volume = 0.3;
+                bgm.play().catch(function(error) {{
+                    console.log('Background music play failed:', error);
+                }});
+            }}
+        }}, 200);
+        </script>
+        """, 
+        unsafe_allow_html=True
+    )
+
 def get_valid_path(img_path):
-    # Kodun çalıştığı dizin ve github dosya dizini farklı olabilir!
+    """Get valid image path"""
     local = Path(img_path)
     if local.exists():
         return img_path
-    # Klasörlü repolarda: oyun/images/hurrem.png gibi yol dene
     nested = Path(f"oyun/{img_path}")
     if nested.exists():
         return str(nested)
-    # Fallback
     return img_path
 
-# --- CSS (mobil uyumlu) ---
+# --- MOBILE-OPTIMIZED CSS ---
 css = """
 <style>
-@font-face {
-    font-family: 'Papyrus';
-    src: url('fonts/papyrus.ttf') format('truetype');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
 }
+
 body {
-    background: url('images/ottoman_background.jpg') no-repeat center center fixed;
-    background-size: cover;
-    color: #222;
-    font-family: 'Papyrus', fantasy;
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #CD853F 100%);
+    color: #2F1B14;
+    font-family: 'Cinzel', serif;
+    margin: 0;
+    padding: 0;
 }
+
+.main-container {
+    max-width: 100vw;
+    padding: 10px;
+    min-height: 100vh;
+}
+
+.game-header {
+    text-align: center;
+    background: linear-gradient(145deg, #F4E4BC, #E6D3A3);
+    border: 3px solid #8B4513;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.game-title {
+    font-size: clamp(24px, 6vw, 36px);
+    font-weight: 700;
+    color: #8B4513;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
 .parchment {
-    background: url('images/parchment_bg.jpg') no-repeat center center;
-    background-size: cover;
-    margin: 20px auto;
-    padding: 20px 18px;
-    border: 2px solid #d2b48c;
+    background: linear-gradient(145deg, #F5E6D3, #E8D5B7);
+    margin: 15px 0;
+    padding: 20px;
+    border: 2px solid #8B4513;
     border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    line-height: 1.6;
 }
-.char-img {
-    border: 5px solid #a89c64;
-    border-radius: 18px;
-    margin-bottom: 8px;
+
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    padding: 20px 0;
+    justify-items: center;
+}
+
+.character-card {
+    text-align: center;
     cursor: pointer;
-    transition: border 0.3s;
-    width: 150px;
+    transition: all 0.3s ease;
+    padding: 15px;
+    border-radius: 15px;
+    background: rgba(245, 230, 211, 0.8);
+    border: 3px solid transparent;
+    width: 100%;
+    max-width: 150px;
+}
+
+.character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+}
+
+.character-card.selected {
+    border-color: #228B22;
+    background: rgba(34, 139, 34, 0.1);
+    transform: translateY(-3px);
+}
+
+.char-img {
+    width: 100%;
     height: auto;
+    max-width: 100px;
+    border-radius: 50%;
+    border: 4px solid #8B4513;
+    margin-bottom: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.character-card.selected .char-img {
+    border-color: #228B22;
+}
+
+.char-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #8B4513;
+    margin: 0;
+}
+
+.score-display {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.score-item {
+    background: linear-gradient(145deg, #FFD700, #FFA500);
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 2px solid #8B4513;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.game-button {
+    background: linear-gradient(145deg, #228B22, #32CD32);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
     display: block;
-    margin-left: auto;
-    margin-right: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
-.char-img.selected {
-    border: 5px solid #24c263;
+
+.game-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
-@media (max-width: 600px) {
-    .char-img { width: 32vw !important; }
+
+.game-button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
 }
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.option-button {
+    background: linear-gradient(145deg, #F5E6D3, #E8D5B7);
+    border: 2px solid #8B4513;
+    padding: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.option-button:hover {
+    background: linear-gradient(145deg, #E8D5B7, #DBC4A2);
+    transform: translateX(5px);
+}
+
+.option-button.selected {
+    background: linear-gradient(145deg, #98FB98, #90EE90);
+    border-color: #228B22;
+}
+
+.reset-button {
+    background: linear-gradient(145deg, #DC143C, #FF6347);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.loading-screen {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.loading-text {
+    font-size: 24px;
+    color: #8B4513;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .character-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .score-display {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .score-item {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* Hide Streamlit elements for cleaner mobile experience */
+.stDeployButton {display:none;}
+footer {visibility: hidden;}
+.stDecoration {display:none;}
+header {visibility: hidden;}
 </style>
 """
+
 st.markdown(css, unsafe_allow_html=True)
 
-# --- SESSION STATE ---
+# --- SESSION STATE INITIALIZATION ---
 if "current_screen" not in st.session_state:
     st.session_state.current_screen = "character_select"
+
 if "selected_character" not in st.session_state:
     st.session_state.selected_character = None
-if "char_fx_played" not in st.session_state:
-    st.session_state.char_fx_played = False
-if "background_music_started" not in st.session_state:
-    st.session_state.background_music_started = False
+
+if "character_confirmed" not in st.session_state:
+    st.session_state.character_confirmed = False
+
+if "audio_played" not in st.session_state:
+    st.session_state.audio_played = {"character": False, "start": False, "background": False}
+
 if "game_data" not in st.session_state:
     st.session_state.game_data = {
         "current_scene": "bolum_1",
         "history": [],
         "scores": {"harem": 0, "suleyman": 0, "divan": 0}
     }
-if "just_selected_character" not in st.session_state:
-    st.session_state.just_selected_character = False
-if "answer_fx" not in st.session_state:
-    st.session_state.answer_fx = None
 
-# --- SENARYO ---
+if "selected_option" not in st.session_state:
+    st.session_state.selected_option = None
 
-scenerios =  {
+# --- GAME SCENARIOS ---
+scenarios = {
             # İlk 50 bölüm (örnek)
             "bolum_1": {
                 "description": "Hürrem, Manisa'dan gelen tüccarların uğradığı usulsüzlükleri duydu. Sarayda bu konu büyük bir mesele haline geldi.",
@@ -1329,7 +1551,7 @@ scenerios =  {
                 "description": "Bolum 53: Hürrem, cariyesi Esma'nın davranışlarından şüphelenir; Şehzade Mustafa'nın zehirlenmiş olabileceği şüphesiyle yüzleşir; ayrıca Süleyman'ın Gülbahar Hatun'la konuşmasına şahit olur ve sevgisinden şüphe duymaya başlar.",
                 "character": {
                     "name": "Şahzade Mustafa",
-                    "image": "images/sehzade_mustafa.png",
+                    "image": "images/mustafa.png",
                     "quote": "Benim sağlığım her şeyden önemli!"
                 },
                 "options": {
@@ -1357,7 +1579,7 @@ scenerios =  {
                 "description": "Bolum 57: Hürrem, Gülfem'in huzursuz olduğunu öğrenir; ayrıca Daye Hatun yerine yeni hazinedar seçme kararsızlığı ve Matrakçı'nın Doğu seferiyle ilgili durumu gündeme gelir.",
                 "character": {
                     "name": "Gülfem Hatun",
-                    "image": "images/gulfem.jpg",
+                    "image": "images/gulfem.png",
                     "quote": "Bu huzursuzluk basit bir belirtiden öte..."
                 },
                 "options": {
@@ -1385,7 +1607,7 @@ scenerios =  {
                 "description": "Bolum 59: Hürrem, Paşa'nın kendisini eş değerde gördüğü, Fatma Hatun'un entrikaları ve kendisine yönelik iftiralara karşı nasıl tepki vereceğini değerlendiriyor.",
                 "character": {
                     "name": "Ebu Suud",
-                    "image": "images/ebusuud.jpg",
+                    "image": "images/ebusuud.png",
                     "quote": "Güç, sözde değil eylemdedir!"
                 },
                 "options": {
@@ -1525,7 +1747,7 @@ scenerios =  {
                 "description": "Bolum 70: Hürrem, evleneceği adamı başka bir yere gönderme teklifiyle ve Cihangir'in rahatsızlığıyla karşı karşıya.",
                 "character": {
                     "name": "Cihangir",
-                    "image": "images/cihangir.jpg",
+                    "image": "images/cihangir.png",
                     "quote": "Rahatsızlık bazen gizli tehlikelerin habercisidir."
                 },
                 "options": {
@@ -1551,7 +1773,11 @@ scenerios =  {
             },
             "bolum_71": {
                 "description": "Bolum 71: Hürrem, Şehzade Bayezid'in Kütahya'ya gitmek istememesi ve Atmaca'nın gelişi üzerine stratejik kararlar almalı.",
-
+                "character": {
+                    "name": "Şehzade Bayezid",
+                    "image": "images/bayezid.png",
+                    "quote": "Kütahya'ya gitmek, kalbimin sesini dinlemek demektir."
+                },
                 "options": {
                     "A": {
                         "text": "Önceliklerinizi belirleyip Bayezid'in kararını etkilemeye çalışın.",
@@ -1575,7 +1801,11 @@ scenerios =  {
             },
             "bolum_108": {
                 "description": "Bolum 108: Evlilik ve Kapudan Paşa'nın kızı konusu gündemde. Evlilikler politik araç olarak değerlendiriliyor.",
-
+                "character": {
+                    "name": "Kapudan Paşa'nın Kızı",
+                    "image": "images/kapudan_kizi.png",
+                    "quote": "Ben, sarayın yeni penceresiyim."
+                },
                 "options": {
                     "A": {
                         "text": "İttifakları değerlendirin.",
@@ -1599,7 +1829,11 @@ scenerios =  {
             },
             "bolum_109": {
                 "description": "Bolum 109: Hakikat, ateş ve derya kavramları üzerine derin düşünceler; Mustafa Paşa’dan intikam arzusu ve aile bağları tartışılıyor.",
-
+                "character": {
+                    "name": "Mustafa Paşa",
+                    "image": "images/mustafa_pasa.png",
+                    "quote": "Adaletin tereddüdü, intikamın kıvılcımıdır."
+                },
                 "options": {
                     "A": {
                         "text": "Hakikati arayın.",
@@ -1623,7 +1857,11 @@ scenerios =  {
             },
             "bolum_110": {
                 "description": "Bolum 110: Venedik balosu, dostluk ve cephe genişlemesi konusu; 'Hünkar böyle karar vermiş...' sözüyle Hürrem'in manipülatif yönü öne çıkıyor.",
-
+                "character": {
+                    "name": "Hünkar",
+                    "image": "images/hunkar.png",
+                    "quote": "Güç, her daim adil olmalı."
+                },
                 "options": {
                     "A": {
                         "text": "İtibarınızı koruyun.",
@@ -1654,7 +1892,11 @@ scenerios =  {
             ,
             "bolum_92": {
                 "description": "Bolum 92: Mira'nın ihaneti ve evlendirme telaşı; Paşa hazretlerinin sözleri gündemde.",
- 
+                "character": {
+                    "name": "Mira",
+                    "image": "images/mira.png",
+                    "quote": "Benim ihanetime kimse mazhar olmaz!"
+                },
                 "options": {
                     "A": {
                         "text": "Mira'nın ihanetine öfkeyle karşılık ver, cezalandır.",
@@ -1690,7 +1932,11 @@ scenerios =  {
             },
             "bolum_93": {
                 "description": "Bolum 93: Şehzade'nin kaybolması, kıyafetlerinin bulunması; Validemin 'yemin ederim kazaydı' demesi gündemde.",
-
+                "character": {
+                    "name": "Hünkar",
+                    "image": "images/hunkar.png",
+                    "quote": "Her şey kaderin bir oyunu..."
+                },
                 "options": {
                     "A": {
                         "text": "Panik halinde arama çalışmalarına katıl.",
@@ -2133,12 +2379,12 @@ scenerios =  {
             }
         }
 
+            
+        
 
-
-
-
-
-
+            
+    
+# --- CHARACTER DATA ---
 characters = [
     {
         "name": "Süleyman",
@@ -2147,7 +2393,7 @@ characters = [
     },
     {
         "name": "Pargalı",
-        "img": "images/pargali.png",
+        "img": "images/pargali.png", 
         "sound": "sounds/diger.mp3"
     },
     {
@@ -2157,119 +2403,215 @@ characters = [
     }
 ]
 
-# --- KARAKTER SECIM EKRANI ---
+# --- SCREEN FUNCTIONS ---
+
 def render_character_selection():
-    st.title("Karakter Seçimi")
-    st.markdown("Lütfen karakterinizi seçin:")
-    cols = st.columns(len(characters))
-    for i, char in enumerate(characters):
+    """Render character selection screen with improved mobile UX"""
+    st.markdown('<div class="game-header"><h1 class="game-title">🏰 Osmanlı Sarayı Oyunu</h1></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="parchment"><h2 style="text-align: center; margin-top: 0;">Karakterini Seç</h2></div>', unsafe_allow_html=True)
+    
+    # Character selection grid
+    char_html = '<div class="character-grid">'
+    for char in characters:
         img_path = get_valid_path(char["img"])
-        selected_cls = "selected" if st.session_state.selected_character == char["name"] else ""
-        with cols[i]:
-            # Karaktere tıklayınca seçimi ayarla ve click efekti çal
-            if st.button(f"{char['name']}", key=char["name"]):
-                st.session_state.selected_character = char["name"]
-                st.session_state.char_fx_played = False
-                st.session_state.background_music_started = False
-                st.session_state.just_selected_character = True
-                play_effect("sounds/click.mp3")
-                st.rerun()
-            st.markdown(
-                f'<img src="{img_path}" class="char-img {selected_cls}"/>',
-                unsafe_allow_html=True
-            )
-    # Eğer karakter seçildiyse karakter müziği oynat, karakter müziği bitince arka plan müziği başlasın ve oyun başlasın
-    if st.session_state.selected_character and not st.session_state.char_fx_played:
-        char = next(c for c in characters if c["name"] == st.session_state.selected_character)
-        play_effect(char["sound"])
-        st.session_state.char_fx_played = True
-        st.session_state.background_music_started = False  # Arka plan müziğini tekrar oynat
-        st.session_state.current_screen = "wait_for_bg_music"
-        st.rerun()
-
-def wait_for_bg_music_and_start():
-    st.title("Hazırlanıyor...")
-    st.success(f"{st.session_state.selected_character} seçildi! Oyun başlıyor...")
-    # Arka plan müziği sadece bir defa başlasın
-    if not st.session_state.background_music_started:
-        play_background_music()
-        st.session_state.background_music_started = True
-    # 1.5 saniye sonra oyun ekranına geç (müzik başlaması için)
-    import time
-    time.sleep(1.5)
-    st.session_state.current_screen = "game"
-    st.rerun()
-
-# --- OYUN EKRANI ---
-def render_game_screen():
-    st.title("Sarayda Bir Yolculuk")
-    char = st.session_state.selected_character
-    skorlar = st.session_state.game_data["scores"]
-    st.markdown(
-        f"<div class='parchment'><b>Puanlar:</b> Harem: {skorlar['harem']} &nbsp; Süleyman: {skorlar['suleyman']} &nbsp; Divan: {skorlar['divan']}</div>",
-        unsafe_allow_html=True
-    )
-    if not st.session_state.background_music_started:
-        play_background_music()
-        st.session_state.background_music_started = True
-
-    if not scenerios:
-        st.warning("Senaryo eklenmedi! Kodda scenerios kısmını doldurun.")
-        return
-
-    game_data = st.session_state.game_data
-    scene_key = game_data["current_scene"]
-    scene = scenerios.get(scene_key)
-    if not scene:
-        st.success("Oyun Bitti! (Senaryoyu tamamlayınca devam edecektir.)")
-        return
-    st.markdown(f"<div class='parchment'><b>{scene['description']}</b></div>", unsafe_allow_html=True)
-    options = scene.get("options", {})
-    option_keys = list(options.keys())
-    option_texts = [options[k]["text"] for k in option_keys]
-    chosen = st.radio("Ne yapacaksın?", option_texts)
-    if st.button("Karar Ver"):
-        idx = option_texts.index(chosen)
-        chosen_key = option_keys[idx]
-        outcome = options[chosen_key]
-        # Yanlış/doğru cevaba göre efekt ata
-        if outcome.get("is_wrong", False):
-            st.session_state.answer_fx = "wrong"
-        else:
-            st.session_state.answer_fx = "correct"
-        st.session_state.game_data["history"].append({
-            "scene": scene_key, "choice": chosen, "outcome": outcome["outcome"]
-        })
-        for k, v in outcome["score_changes"].items():
-            st.session_state.game_data["scores"][k] += v
-        st.session_state.game_data["current_scene"] = outcome["next_scene"]
-        st.rerun()
-    # Soruya cevap verildikten sonra efekt oynat
-    if st.session_state.answer_fx == "wrong":
-        play_effect("sounds/dikkat.mp3")
-        st.session_state.answer_fx = None
-    elif st.session_state.answer_fx == "correct":
-        play_effect("sounds/dogrukarar.mp3")
-        st.session_state.answer_fx = None
-
-# --- ANA AKIŞ ---
-if st.session_state.current_screen == "character_select":
-    render_character_selection()
-elif st.session_state.current_screen == "wait_for_bg_music":
-    wait_for_bg_music_and_start()
-elif st.session_state.current_screen == "game":
-    render_game_screen()
-
-if st.button("Oyunu Sıfırla"):
-    st.session_state.current_screen = "character_select"
-    st.session_state.selected_character = None
-    st.session_state.char_fx_played = False
-    st.session_state.background_music_started = False
-    st.session_state.just_selected_character = False
-    st.session_state.answer_fx = None
-    st.session_state.game_data = {
-        "current_scene": "bolum_1",
-        "history": [],
-        "scores": {"harem": 0, "suleyman": 0, "divan": 0}
+        selected_class = "selected" if st.session_state.selected_character == char["name"] else ""
+        char_html += f'''
+        <div class="character-card {selected_class}" onclick="selectCharacter('{char["name"]}')">
+            <img src="{img_path}" class="char-img" alt="{char["name"]}"/>
+            <p class="char-name">{char["name"]}</p>
+        </div>
+        '''
+    char_html += '</div>'
+    
+    # JavaScript for character selection
+    char_html += '''
+    <script>
+    function selectCharacter(name) {
+        // Remove previous selections
+        document.querySelectorAll('.character-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add selection to clicked character
+        event.currentTarget.classList.add('selected');
+        
+        // Store selection
+        window.selectedCharacter = name;
     }
-    st.rerun()
+    </script>
+    '''
+    
+    st.markdown(char_html, unsafe_allow_html=True)
+    
+    # Character selection buttons
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("Süleyman", key="select_suleyman", use_container_width=True):
+            st.session_state.selected_character = "Süleyman"
+            st.rerun()
+    
+    with col2:
+        if st.button("Pargalı", key="select_pargali", use_container_width=True):
+            st.session_state.selected_character = "Pargalı"
+            st.rerun()
+    
+    with col3:
+        if st.button("Hürrem", key="select_hurrem", use_container_width=True):
+            st.session_state.selected_character = "Hürrem"
+            st.rerun()
+    
+    # Show selected character and confirm button
+    if st.session_state.selected_character:
+        st.markdown(f'<div class="parchment" style="text-align: center;"><h3>Seçilen Karakter: {st.session_state.selected_character}</h3></div>', unsafe_allow_html=True)
+        
+        if st.button("🎮 Oyunu Başlat", key="confirm_character", use_container_width=True):
+            st.session_state.character_confirmed = True
+            st.session_state.current_screen = "loading"
+            # Play character sound
+            char = next(c for c in characters if c["name"] == st.session_state.selected_character)
+            play_audio_with_user_interaction(char["sound"], "character-sound")
+            st.session_state.audio_played["character"] = True
+            st.rerun()
+
+def render_loading_screen():
+    """Render loading screen with audio sequence"""
+    st.markdown('<div class="loading-screen">', unsafe_allow_html=True)
+    st.markdown(f'<div class="loading-text">🎭 {st.session_state.selected_character} olarak oyuna hazırlanıyorsun...</div>', unsafe_allow_html=True)
+    
+    # Play start sound after character sound
+    if st.session_state.audio_played["character"] and not st.session_state.audio_played["start"]:
+        play_audio_with_user_interaction("sounds/start.mp3", "start-sound")
+        st.session_state.audio_played["start"] = True
+    
+    # Auto-progress to game after sounds
+    if st.button("🚀 Oyuna Geç", key="start_game", use_container_width=True):
+        st.session_state.current_screen = "game"
+        if not st.session_state.audio_played["background"]:
+            play_background_music()
+            st.session_state.audio_played["background"] = True
+        st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_game_screen():
+    """Render main game screen"""
+    st.markdown('<div class="game-header"><h1 class="game-title">🏰 Sarayda Bir Yolculuk</h1></div>', unsafe_allow_html=True)
+    
+    # Start background music if not already playing
+    if not st.session_state.audio_played["background"]:
+        play_background_music()
+        st.session_state.audio_played["background"] = True
+    
+    # Display scores
+    scores = st.session_state.game_data["scores"]
+    score_html = f'''
+    <div class="score-display">
+        <div class="score-item">👥 Harem: {scores["harem"]}</div>
+        <div class="score-item">👑 Süleyman: {scores["suleyman"]}</div>
+        <div class="score-item">🏛️ Divan: {scores["divan"]}</div>
+    </div>
+    '''
+    st.markdown(score_html, unsafe_allow_html=True)
+    
+    # Get current scene
+    scene_key = st.session_state.game_data["current_scene"]
+    scene = scenarios.get(scene_key)
+    
+    if not scene:
+        render_game_end()
+        return
+    
+    # Display scenario
+    st.markdown(f'<div class="parchment"><strong>📜 Durum:</strong><br>{scene["description"]}</div>', unsafe_allow_html=True)
+    
+    # Display options
+    st.markdown('<div class="parchment"><strong>🤔 Ne yapacaksın?</strong></div>', unsafe_allow_html=True)
+    
+    options = scene.get("options", {})
+    
+    # Option selection
+    for key, option in options.items():
+        button_key = f"option_{scene_key}_{key}"
+        if st.button(f"{key}. {option['text']}", key=button_key, use_container_width=True):
+            st.session_state.selected_option = key
+            process_choice(scene_key, key, option)
+            st.rerun()
+
+def process_choice(scene_key, choice_key, choice_data):
+    """Process the player's choice and update game state"""
+    # Add to history
+    st.session_state.game_data["history"].append({
+        "scene": scene_key,
+        "choice": choice_key,
+        "outcome": choice_data["outcome"]
+    })
+    
+    # Update scores
+    for score_type, change in choice_data["score_changes"].items():
+        st.session_state.game_data["scores"][score_type] += change
+    
+    # Calculate total score change to determine audio feedback
+    total_score_change = sum(choice_data["score_changes"].values())
+    
+    # Play appropriate sound effect
+    if total_score_change > 2:
+        play_audio_with_user_interaction("sounds/dogrukarar.mp3", "correct-choice")
+    else:
+        play_audio_with_user_interaction("sounds/dikkat.mp3", "wrong-choice")
+    
+    # Move to next scene
+    st.session_state.game_data["current_scene"] = choice_data["next_scene"]
+    st.session_state.selected_option = None
+
+def render_game_end():
+    """Render game end screen with final scores"""
+    st.markdown('<div class="game-header"><h1 class="game-title">🎊 Oyun Tamamlandı!</h1></div>', unsafe_allow_html=True)
+    
+    scores = st.session_state.game_data["scores"]
+    total_score = sum(scores.values())
+    
+    # Determine result based on highest score
+    highest_score = max(scores.values())
+    winning_category = [k for k, v in scores.items() if v == highest_score][0]
+    
+    result_messages = {
+        "harem": "🌹 Haremde büyük bir güç oldun! Kadınların saygısını kazandın.",
+        "suleyman": "👑 Sultan'ın gözdesiri oldun! Siyasi gücün arttı.",
+        "divan": "🏛️ Devlet işlerinde etkili oldun! Divan'da söz sahibisin."
+    }
+    
+    st.markdown(f'<div class="parchment" style="text-align: center;"><h2>🏆 Sonuç</h2><p>{result_messages[winning_category]}</p><h3>Toplam Puan: {total_score}</h3></div>', unsafe_allow_html=True)
+    
+    # Final score display
+    score_html = f'''
+    <div class="score-display">
+        <div class="score-item">👥 Harem: {scores["harem"]}</div>
+        <div class="score-item">👑 Süleyman: {scores["suleyman"]}</div>
+        <div class="score-item">🏛️ Divan: {scores["divan"]}</div>
+    </div>
+    '''
+    st.markdown(score_html, unsafe_allow_html=True)
+
+# --- MAIN APP FLOW ---
+
+def main():
+    """Main application flow"""
+    if st.session_state.current_screen == "character_select":
+        render_character_selection()
+    elif st.session_state.current_screen == "loading":
+        render_loading_screen()
+    elif st.session_state.current_screen == "game":
+        render_game_screen()
+    
+    # Reset button (always available)
+    if st.button("🔄 Oyunu Sıfırla", key="reset_game", help="Oyunu baştan başlat"):
+        # Reset all session state
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.rerun()
+
+# Run the app
+if __name__ == "__main__":
+    main()
