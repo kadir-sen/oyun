@@ -2417,9 +2417,20 @@ def render_character_selection():
         img_path = get_valid_path(char["img"])
         selected_class = "selected" if st.session_state.selected_character == char["name"] else ""
         char_html += f'''
-        <div class="character-card {selected_class}" onclick="selectCharacter('{char["name"]}')">
-            <img src="{img_path}" class="char-img" alt="{char["name"]}"/>
-            <p class="char-name">{char["name"]}</p>
+        <div class="character-grid">
+          <div class="character-card" onclick="selectCharacter('Süleyman', this)">
+            <img src="images/sultan.png" class="char-img" alt="Süleyman"/>
+            <p class="char-name">Pargalı</p>
+          </div>
+        <div class="character-grid">
+          <div class="character-card" onclick="selectCharacter('Pargalı', this)">
+            <img src="images/pargali.png" class="char-img" alt="Pargalı"/>
+            <p class="char-name">Pargalı</p>
+          </div>
+          <div class="character-card" onclick="selectCharacter('Hürrem', this)">
+            <img src="images/hurrem.png" class="char-img" alt="Hürrem"/>
+            <p class="char-name">Hürrem</p>
+          </div>
         </div>
         '''
     char_html += '</div>'
@@ -2427,15 +2438,15 @@ def render_character_selection():
     # JavaScript for character selection
     char_html += '''
     <script>
-    function selectCharacter(name) {
+    function selectCharacter(name, el) {
         // Remove previous selections
         document.querySelectorAll('.character-card').forEach(card => {
             card.classList.remove('selected');
         });
-        
+    
         // Add selection to clicked character
-        event.currentTarget.classList.add('selected');
-        
+        el.classList.add('selected');
+    
         // Store selection
         window.selectedCharacter = name;
     }
