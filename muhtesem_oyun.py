@@ -1,3 +1,7 @@
+
+    
+    
+    
 import streamlit as st
 import base64
 import os
@@ -2380,10 +2384,8 @@ scenarios = {
         }
 
             
-        
+ 
 
-            
-    
 # --- CHARACTER DATA ---
 characters = [
     {
@@ -2411,71 +2413,44 @@ def render_character_selection():
     
     st.markdown('<div class="parchment"><h2 style="text-align: center; margin-top: 0;">Karakterini Seç</h2></div>', unsafe_allow_html=True)
     
-    # Character selection grid
+    # Character selection with visual display
     char_html = '<div class="character-grid">'
     for char in characters:
         img_path = get_valid_path(char["img"])
         selected_class = "selected" if st.session_state.selected_character == char["name"] else ""
         char_html += f'''
-        <div class="character-grid">
-          <div class="character-card" onclick="selectCharacter('Süleyman', this)">
-            <img src="images/sultan.png" class="char-img" alt="Süleyman"/>
-            <p class="char-name">Pargalı</p>
-          </div>
-        <div class="character-grid">
-          <div class="character-card" onclick="selectCharacter('Pargalı', this)">
-            <img src="images/pargali.png" class="char-img" alt="Pargalı"/>
-            <p class="char-name">Pargalı</p>
-          </div>
-          <div class="character-card" onclick="selectCharacter('Hürrem', this)">
-            <img src="images/hurrem.png" class="char-img" alt="Hürrem"/>
-            <p class="char-name">Hürrem</p>
-          </div>
+        <div class="character-card {selected_class}">
+            <img src="{img_path}" class="char-img" alt="{char["name"]}"/>
+            <p class="char-name">{char["name"]}</p>
         </div>
         '''
     char_html += '</div>'
     
-    # JavaScript for character selection
-    char_html += '''
-    <script>
-    function selectCharacter(name, el) {
-        // Remove previous selections
-        document.querySelectorAll('.character-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-    
-        // Add selection to clicked character
-        el.classList.add('selected');
-    
-        // Store selection
-        window.selectedCharacter = name;
-    }
-    </script>
-    '''
-    
     st.markdown(char_html, unsafe_allow_html=True)
     
     # Character selection buttons
+    st.markdown('<div class="parchment"><h3 style="text-align: center;">Karakterini seç:</h3></div>', unsafe_allow_html=True)
+    
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("Süleyman", key="select_suleyman", use_container_width=True):
+        if st.button("👑 Süleyman", key="select_suleyman", use_container_width=True):
             st.session_state.selected_character = "Süleyman"
             st.rerun()
     
     with col2:
-        if st.button("Pargalı", key="select_pargali", use_container_width=True):
+        if st.button("⚔️ Pargalı", key="select_pargali", use_container_width=True):
             st.session_state.selected_character = "Pargalı"
             st.rerun()
     
     with col3:
-        if st.button("Hürrem", key="select_hurrem", use_container_width=True):
+        if st.button("🌹 Hürrem", key="select_hurrem", use_container_width=True):
             st.session_state.selected_character = "Hürrem"
             st.rerun()
     
     # Show selected character and confirm button
     if st.session_state.selected_character:
-        st.markdown(f'<div class="parchment" style="text-align: center;"><h3>Seçilen Karakter: {st.session_state.selected_character}</h3></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="parchment" style="text-align: center; background: linear-gradient(145deg, #98FB98, #90EE90);"><h3>✅ Seçilen Karakter: {st.session_state.selected_character}</h3></div>', unsafe_allow_html=True)
         
         if st.button("🎮 Oyunu Başlat", key="confirm_character", use_container_width=True):
             st.session_state.character_confirmed = True
