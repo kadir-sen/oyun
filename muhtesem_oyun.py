@@ -1,7 +1,3 @@
-
-    
-    
-    
 import streamlit as st
 import base64
 import os
@@ -82,6 +78,15 @@ def get_valid_path(img_path):
     if nested.exists():
         return str(nested)
     return img_path
+
+def image_to_base64(img_path):
+    """Convert image to base64 for HTML embedding"""
+    try:
+        with open(img_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        st.warning(f"Image file not found: {img_path}")
+        return None
 
 # --- MOBILE-OPTIMIZED CSS ---
 css = """
@@ -2385,6 +2390,228 @@ scenarios = {
 
             
  
+# --- CHARACTER DATA ---
+characters = [
+    {
+        "name": "Süleyman",
+        "img": "images/sultan.png",
+        "sound": "sounds/diger.mp3"
+    },
+    {
+        "name": "Pargalı",
+        "img": "images/pargali.png", 
+        "sound": "sounds/diger.mp3"
+    },
+    {
+        "name": "Hürrem",
+        "img": "images/hurrem.png",
+        "sound": "sounds/hurrem.mp3"
+    }
+]
+
+# --- SCREEN FUNCTIONS ---
+
+def render_character_selection():
+    """Render character selection screen with improved mobile UX"""
+    st.markdown('<div class="game-header"><h1 class="game-title">🏰 Osmanlı Sarayı Oyunu</h1></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="parchment"><h2 style="text-align: center; margin-top: 0;">Karakterini Seç</h2></div>', unsafe_allow_html=True)
+    
+    # Character selection with visual display
+    char_html = '<div class="character-grid">'
+    for char in characters:
+        img_path = get_valid_path(char["img"])
+        selected_class = "selected" if st.session_state.selected_character == char["name"] else ""
+        char_html += f'''
+        <div class="character-card {selected_class}">
+            <img src="{img_path}" class="char-img" alt="{char["name"]}"/>
+            <p class="char-name">{char["name"]}</p>
+        </div>
+        '''
+    char_html += '</div>'
+    
+    st.markdown(char_html, unsafe_allow_html=True)
+    
+    # Character selection buttons
+    st.markdown('<div class="parchment"><h3 style="text-align: center;">Karakterini seç:</h3></div>', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("👑 Süleyman", key="select_suleyman", use_container_width=True):
+            st.session_state.selected_character = "Süleyman"
+            st.rerun()
+    
+    with col2:
+        if st.button("⚔️ Pargalı", key="select_pargali", use_container_width=True):
+            st.session_state.selected_character = "Pargalı"
+            st.rerun()
+    
+    with col3:
+        if st.button("🌹 Hürrem", key="select_hurrem", use_container_width=True):
+            st.session_state.selected_character = "Hürrem"
+            st.rerun()
+    
+    # Show selected character and confirm button
+    if st.session_state.selected_character:
+        st.markdown(f'<div class="parchment" style="text-align: center; background: linear-gradient(145deg, #98FB98, #90EE90);"><h3>✅ Seçilen Karakter: {st.session_state.selected_character}</h3></div>', unsafe_allow_html=True)
+        
+        if st.button("🎮 Oyunu Başlat", key="confirm_character", use_container_width=True):
+            st.session_state.character_confirmed = True
+            st.session_state.current_screen = "loading"
+            # Play character sound
+            char = next(c for c in characters if c["name"] == st.session_state.selected_character)
+            play_audio_with_user_interaction(char["sound"], "character-sound")
+            st.session_state.audio_played["character"] = True
+            st.rerun()
+
+def render_loading_screen():
+    """Render loading screen with audio sequence"""
+    st.markdown('<div class="loading-screen">', unsafe_allow_html=True)
+    st.markdown(f'<div class="loading-text">🎭 {st.session_state.selected_character} olarak oyuna hazırlanıyorsun...</div>', unsafe_allow_html=True)
+    
+    # Play start sound after character sound
+    if st.session_state.audio_played["character"] and not st.session_state.audio_played["start"]:
+        play_audio_with_user_interaction("sounds/start.mp3", "start-sound")
+        st.session_state.audio_played["start"] = True
+    
+    # Auto-progress to game after sounds
+    if st.button("🚀 Oyuna Geç", key="start_game", use_container_width=True):
+        st.session_state.current_screen = "game"
+        if not st.session_state.audio_played["background"]:
+            play_background_music()
+            st.session_state.audio_played["background"] = True
+        st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_game_screen():
+    """Render main game screen"""
+    st.markdown('<div class="game-header"><h1 class="game-title">🏰 Sarayda Bir Yolculuk</h1></div>', unsafe_allow_html=True)
+    
+    # Start background music if not already playing
+    if not st.session_state.audio_played["background"]:
+        play_background_music()
+        st.session_state.audio_played["background"] = True
+    
+    # Display scores
+    scores = st.session_state.game_data["scores"]
+    score_html = f'''
+    <div class="score-display">
+        <div class="score-item">👥 Harem: {scores["harem"]}</div>
+        <div class="score-item">👑 Süleyman: {scores["suleyman"]}</div>
+        <div class="score-item">🏛️ Divan: {scores["divan"]}</div>
+    </div>
+    '''
+    st.markdown(score_html, unsafe_allow_html=True)
+    
+    # Get current scene
+    scene_key = st.session_state.game_data["current_scene"]
+    scene = scenarios.get(scene_key)
+    
+    if not scene:
+        render_game_end()
+        return
+    
+    # Display scenario
+    st.markdown(f'<div class="parchment"><strong>📜 Durum:</strong><br>{scene["description"]}</div>', unsafe_allow_html=True)
+    
+    # Display options
+    st.markdown('<div class="parchment"><strong>🤔 Ne yapacaksın?</strong></div>', unsafe_allow_html=True)
+    
+    options = scene.get("options", {})
+    
+    # Option selection
+    for key, option in options.items():
+        button_key = f"option_{scene_key}_{key}"
+        if st.button(f"{key}. {option['text']}", key=button_key, use_container_width=True):
+            st.session_state.selected_option = key
+            process_choice(scene_key, key, option)
+            st.rerun()
+
+def process_choice(scene_key, choice_key, choice_data):
+    """Process the player's choice and update game state"""
+    # Add to history
+    st.session_state.game_data["history"].append({
+        "scene": scene_key,
+        "choice": choice_key,
+        "outcome": choice_data["outcome"]
+    })
+    
+    # Update scores
+    for score_type, change in choice_data["score_changes"].items():
+        st.session_state.game_data["scores"][score_type] += change
+    
+    # Calculate total score change to determine audio feedback
+    total_score_change = sum(choice_data["score_changes"].values())
+    
+    # Play appropriate sound effect
+    if total_score_change > 2:
+        play_audio_with_user_interaction("sounds/dogrukarar.mp3", "correct-choice")
+    else:
+        play_audio_with_user_interaction("sounds/dikkat.mp3", "wrong-choice")
+    
+    # Move to next scene
+    st.session_state.game_data["current_scene"] = choice_data["next_scene"]
+    st.session_state.selected_option = None
+
+def render_game_end():
+    """Render game end screen with final scores"""
+    st.markdown('<div class="game-header"><h1 class="game-title">🎊 Oyun Tamamlandı!</h1></div>', unsafe_allow_html=True)
+    
+    scores = st.session_state.game_data["scores"]
+    total_score = sum(scores.values())
+    
+    # Determine result based on highest score
+    highest_score = max(scores.values())
+    winning_category = [k for k, v in scores.items() if v == highest_score][0]
+    
+    result_messages = {
+        "harem": "🌹 Haremde büyük bir güç oldun! Kadınların saygısını kazandın.",
+        "suleyman": "👑 Sultan'ın gözdesiri oldun! Siyasi gücün arttı.",
+        "divan": "🏛️ Devlet işlerinde etkili oldun! Divan'da söz sahibisin."
+    }
+    
+    st.markdown(f'<div class="parchment" style="text-align: center;"><h2>🏆 Sonuç</h2><p>{result_messages[winning_category]}</p><h3>Toplam Puan: {total_score}</h3></div>', unsafe_allow_html=True)
+    
+    # Final score display
+    score_html = f'''
+    <div class="score-display">
+        <div class="score-item">👥 Harem: {scores["harem"]}</div>
+        <div class="score-item">👑 Süleyman: {scores["suleyman"]}</div>
+        <div class="score-item">🏛️ Divan: {scores["divan"]}</div>
+    </div>
+    '''
+    st.markdown(score_html, unsafe_allow_html=True)
+
+# --- MAIN APP FLOW ---
+
+def main():
+    """Main application flow"""
+    if st.session_state.current_screen == "character_select":
+        render_character_selection()
+    elif st.session_state.current_screen == "loading":
+        render_loading_screen()
+    elif st.session_state.current_screen == "game":
+        render_game_screen()
+    
+    # Reset button (always available)
+    if st.button("🔄 Oyunu Sıfırla", key="reset_game", help="Oyunu baştan başlat"):
+        # Reset all session state
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.rerun()
+
+# Run the app
+if __name__ == "__main__":
+    main()
+    
+    
+    
+
+
+# --- GAME SCENARIOS ---
+
 
 # --- CHARACTER DATA ---
 characters = [
